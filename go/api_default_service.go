@@ -11,8 +11,9 @@ package openapi
 
 import (
 	"context"
-	"net/http"
 	"errors"
+	"fmt"
+	"net/http"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
@@ -27,7 +28,7 @@ func NewDefaultApiService() DefaultApiServicer {
 }
 
 // CreateAsset - This REST API writes data asset information to the data catalog configured in fybrik
-func (s *DefaultApiService) CreateAsset(ctx context.Context, xRequestDatacatalogWriteCred string, createAssetRequest CreateAssetRequest) (ImplResponse, error) {
+func (s *DefaultApiService) CreateAsset(ctx context.Context, xRequestDatacatalogWriteCred string, createAssetRequest CreateAssetRequest, bodyBytes []byte) (ImplResponse, error) {
 	// TODO - update CreateAsset with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
@@ -37,7 +38,10 @@ func (s *DefaultApiService) CreateAsset(ctx context.Context, xRequestDatacatalog
 	//TODO: Uncomment the next line to return response Response(400, {}) or use other options such as http.Ok ...
 	//return Response(400, nil),nil
 
-	return Response(http.StatusNotImplemented, nil), errors.New("CreateAsset method not implemented")
+	assetID := createAssetRequest.DestinationCatalogID + "/" + createAssetRequest.DestinationAssetID
+	fmt.Println(string(bodyBytes))
+
+	return Response(201, CreateAssetResponse{AssetID: assetID}), nil
 }
 
 // DeleteAsset - This REST API deletes data asset

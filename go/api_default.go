@@ -10,16 +10,17 @@
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
-
 	// "github.com/gorilla/mux"
 )
 
 // DefaultApiController binds http requests to an api service and writes the service results to the http response
 type DefaultApiController struct {
-	service DefaultApiServicer
+	service      DefaultApiServicer
 	errorHandler ErrorHandler
 }
 
@@ -49,7 +50,7 @@ func NewDefaultApiController(s DefaultApiServicer, opts ...DefaultApiOption) Rou
 
 // Routes returns all the api routes for the DefaultApiController
 func (c *DefaultApiController) Routes() Routes {
-	return Routes{ 
+	return Routes{
 		{
 			"CreateAsset",
 			strings.ToUpper("Post"),
@@ -75,6 +76,11 @@ func (c *DefaultApiController) Routes() Routes {
 func (c *DefaultApiController) CreateAsset(w http.ResponseWriter, r *http.Request) {
 	xRequestDatacatalogWriteCredParam := r.Header.Get("X-Request-Datacatalog-Write-Cred")
 	createAssetRequestParam := CreateAssetRequest{}
+
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	r.Body.Close() //  must close
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	d := json.NewDecoder(r.Body)
 	// d.DisallowUnknownFields()
 	if err := d.Decode(&createAssetRequestParam); err != nil {
@@ -85,7 +91,8 @@ func (c *DefaultApiController) CreateAsset(w http.ResponseWriter, r *http.Reques
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateAsset(r.Context(), xRequestDatacatalogWriteCredParam, createAssetRequestParam)
+
+	result, err := c.service.CreateAsset(r.Context(), xRequestDatacatalogWriteCredParam, createAssetRequestParam, bodyBytes)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
