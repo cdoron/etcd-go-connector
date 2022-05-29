@@ -20,11 +20,18 @@ import (
 // This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
+	conf map[interface{}]interface{}
 }
 
 // NewDefaultApiService creates a default api service
-func NewDefaultApiService() DefaultApiServicer {
-	return &DefaultApiService{}
+func NewDefaultApiService(conf map[interface{}]interface{}) DefaultApiServicer {
+	uuidStr := fmt.Sprint(conf["uuid"])
+	fmt.Printf("Value: %s\n", uuidStr)
+	fmt.Printf("Value: %s\n", conf["etcd_hostname"])
+	fmt.Printf("Value: %d\n", conf["etcd_port"])
+	fmt.Printf("Value: %s\n", conf["etcd_username"])
+	fmt.Printf("Value: %s\n", conf["etcd_password"])
+	return &DefaultApiService{conf}
 }
 
 // CreateAsset - This REST API writes data asset information to the data catalog configured in fybrik

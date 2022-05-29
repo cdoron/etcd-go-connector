@@ -47,14 +47,7 @@ func main() {
 		panic(err)
 	}
 
-	uuidStr := fmt.Sprint(conf["uuid"])
-	fmt.Printf("Value: %s\n", uuidStr)
-	fmt.Printf("Value: %s\n", conf["etcd_hostname"])
-	fmt.Printf("Value: %d\n", conf["etcd_port"])
-	fmt.Printf("Value: %s\n", conf["etcd_username"])
-	fmt.Printf("Value: %s\n", conf["etcd_password"])
-
-	DefaultApiService := openapi.NewDefaultApiService()
+	DefaultApiService := openapi.NewDefaultApiService(conf)
 	DefaultApiController := openapi.NewDefaultApiController(DefaultApiService)
 
 	router := openapi.NewRouter(DefaultApiController)
