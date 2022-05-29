@@ -22,33 +22,32 @@ import (
 // This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
-	conf map[interface{}]interface{}
+	conf clientv3.Config
 }
 
 // NewDefaultApiService creates a default api service
-func NewDefaultApiService(conf map[interface{}]interface{}) DefaultApiServicer {
-	uuidStr := fmt.Sprint(conf["uuid"])
+func NewDefaultApiService(confMap map[interface{}]interface{}) DefaultApiServicer {
+	var conf clientv3.Config
+
+	if confMap["etcd_username"] != nil && confMap["etcd_password"] != nil {
+		conf = clientv3.Config{
+			Endpoints: []string{fmt.Sprint(confMap["etcd_hostname"]) + ":" + fmt.Sprint(confMap["etcd_port"])},
+			Username:  fmt.Sprint(confMap["etcd_username"]),
+			Password:  fmt.Sprint(confMap["etcd_password"]),
+		}
+	} else {
+		conf = clientv3.Config{
+			Endpoints: []string{fmt.Sprint(confMap["etcd_hostname"]) + ":" + fmt.Sprint(confMap["etcd_port"])},
+		}
+	}
+	uuidStr := fmt.Sprint(confMap["uuid"])
 	fmt.Printf("Value: %s\n", uuidStr)
-	fmt.Printf("Value: %s\n", conf["etcd_hostname"])
-	fmt.Printf("Value: %d\n", conf["etcd_port"])
-	fmt.Printf("Value: %s\n", conf["etcd_username"])
-	fmt.Printf("Value: %s\n", conf["etcd_password"])
+
 	return &DefaultApiService{conf}
 }
 
 func (s *DefaultApiService) getEtcdClient() *clientv3.Client {
-	var conf clientv3.Config
-
-	if s.conf["etcd_username"] != nil && s.conf["etcd_password"] != nil {
-		conf = clientv3.Config{
-			Endpoints: []string{"localhost:2379"},
-		}
-	} else {
-		conf = clientv3.Config{
-			Endpoints: []string{"localhost:2379"},
-		}
-	}
-	cli, err := clientv3.New(conf)
+	cli, err := clientv3.New(s.conf)
 
 	if err != nil {
 		// handle error!
@@ -70,6 +69,15 @@ func (s *DefaultApiService) CreateAsset(ctx context.Context, xRequestDatacatalog
 
 	assetID := createAssetRequest.DestinationCatalogID + "/" + createAssetRequest.DestinationAssetID
 	fmt.Println(string(bodyBytes))
+
+	cli := s.getEtcdClient()
+	_, err := cli.Put(context.TODO(), "qqq", "sample_value")
+
+	if err != nil {
+		fmt.Printf("etcd Put operation failed: %v\n", err)
+	}
+
+	cli.Close()
 
 	return Response(201, CreateAssetResponse{AssetID: assetID}), nil
 }
