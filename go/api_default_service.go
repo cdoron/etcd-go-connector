@@ -14,6 +14,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
@@ -32,6 +34,27 @@ func NewDefaultApiService(conf map[interface{}]interface{}) DefaultApiServicer {
 	fmt.Printf("Value: %s\n", conf["etcd_username"])
 	fmt.Printf("Value: %s\n", conf["etcd_password"])
 	return &DefaultApiService{conf}
+}
+
+func (s *DefaultApiService) getEtcdClient() *clientv3.Client {
+	var conf clientv3.Config
+
+	if s.conf["etcd_username"] != nil && s.conf["etcd_password"] != nil {
+		conf = clientv3.Config{
+			Endpoints: []string{"localhost:2379"},
+		}
+	} else {
+		conf = clientv3.Config{
+			Endpoints: []string{"localhost:2379"},
+		}
+	}
+	cli, err := clientv3.New(conf)
+
+	if err != nil {
+		// handle error!
+	}
+
+	return cli
 }
 
 // CreateAsset - This REST API writes data asset information to the data catalog configured in fybrik
