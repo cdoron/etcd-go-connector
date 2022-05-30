@@ -12,9 +12,7 @@ package openapi
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -72,12 +70,11 @@ func (s *DefaultApiService) CreateAsset(ctx context.Context, xRequestDatacatalog
 
 	cli := s.getEtcdClient()
 	_, err := cli.Put(context.TODO(), assetID, string(bodyBytes))
+	cli.Close()
 
 	if err != nil {
 		fmt.Printf("etcd Put operation failed: %v\n", err)
 	}
-
-	cli.Close()
 
 	return Response(201, CreateAssetResponse{AssetID: assetID}), nil
 }
@@ -99,7 +96,14 @@ func (s *DefaultApiService) DeleteAsset(ctx context.Context, xRequestDatacatalog
 	//TODO: Uncomment the next line to return response Response(401, {}) or use other options such as http.Ok ...
 	//return Response(401, nil),nil
 
-	return Response(http.StatusNotImplemented, nil), errors.New("DeleteAsset method not implemented")
+	assetID := deleteAssetRequest.AssetID
+	cli := s.getEtcdClient()
+	dresp, err := cli.Delete(context.TODO(), assetID)
+	cli.Close()
+	if err != nil || dresp.Deleted == 0 {
+		return Response(404, DeleteAssetResponse{"Asset ID not found"}), nil
+	}
+	return Response(200, DeleteAssetResponse{"Deletion Successful"}), nil
 }
 
 // GetAssetInfo - This REST API gets data asset information from the data catalog configured in fybrik for the data sets indicated in FybrikApplication yaml
@@ -115,6 +119,7 @@ func (s *DefaultApiService) GetAssetInfo(ctx context.Context, xRequestDatacatalo
 
 	cli := s.getEtcdClient()
 	value, err := cli.Get(context.TODO(), assetID)
+	cli.Close()
 
 	if err != nil {
 		fmt.Printf("etcd Get operation failed: %v\n", err)
