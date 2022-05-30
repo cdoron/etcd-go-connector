@@ -11,6 +11,7 @@ package openapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -106,11 +107,22 @@ func (s *DefaultApiService) GetAssetInfo(ctx context.Context, xRequestDatacatalo
 	// TODO - update GetAssetInfo with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
-	//TODO: Uncomment the next line to return response Response(200, GetAssetResponse{}) or use other options such as http.Ok ...
-	//return Response(200, GetAssetResponse{}), nil
-
 	//TODO: Uncomment the next line to return response Response(400, {}) or use other options such as http.Ok ...
 	//return Response(400, nil),nil
 
-	return Response(http.StatusNotImplemented, nil), errors.New("GetAssetInfo method not implemented")
+	//TODO: Uncomment the next line to return response Response(200, GetAssetResponse{}) or use other options such as http.Ok ...
+	assetID := getAssetRequest.AssetID
+
+	cli := s.getEtcdClient()
+	value, err := cli.Get(context.TODO(), assetID)
+
+	if err != nil {
+		fmt.Printf("etcd Get operation failed: %v\n", err)
+	}
+
+	// Declared an empty map interface
+	var result map[string]interface{}
+	json.Unmarshal(value.Kvs[0].Value, &result)
+
+	return Response(200, result), nil
 }
