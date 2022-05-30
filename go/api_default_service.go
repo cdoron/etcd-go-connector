@@ -68,10 +68,9 @@ func (s *DefaultApiService) CreateAsset(ctx context.Context, xRequestDatacatalog
 	//return Response(400, nil),nil
 
 	assetID := createAssetRequest.DestinationCatalogID + "/" + createAssetRequest.DestinationAssetID
-	fmt.Println(string(bodyBytes))
 
 	cli := s.getEtcdClient()
-	_, err := cli.Put(context.TODO(), "qqq", "sample_value")
+	_, err := cli.Put(context.TODO(), assetID, string(bodyBytes))
 
 	if err != nil {
 		fmt.Printf("etcd Put operation failed: %v\n", err)
